@@ -1,16 +1,13 @@
-﻿ using System;
-using System.Collections.Generic;
+﻿using BooksAPI.DTOs;
+using BooksAPI.Models;
+using System;
 using System.Data;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
-using System.Net;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
-using BooksAPI.Models;
-using BooksAPI.DTOs;
-using System.Threading.Tasks;
 
 namespace BooksAPI.Controllers
 {
@@ -40,10 +37,17 @@ namespace BooksAPI.Controllers
         [ResponseType(typeof(BookDto))]
         public async Task<IHttpActionResult> GetBook(int id)
         {
-            BookDto book = await db.Books.Include(b => b.Author)
-                .Where(b => b.BookId == id)
-                .Select(AsBookDto)
-                .FirstOrDefaultAsync();
+            var book = await (from b in db.Books.Include(b => b.Author)
+                              where b.BookId == id
+                              select new BookDetailDto
+                              {
+                                  Title = b.Title,
+                                  Genre = b.Genre,
+                                  PublishDate = b.PublishDate,
+                                  Price = b.Price,
+                                  Description = b.Description,
+                                  Author = b.Author.Name
+                              }).FirstOrDefaultAsync();
             if (book == null)
             {
                 return NotFound();
@@ -52,6 +56,14 @@ namespace BooksAPI.Controllers
             return Ok(book);
         }
 
+        [HttpGet]
+        [Route("{genre}")]
+        public IQueryable<BookDto> listBooksByGenre(string genre)
+        {
+            return db.Books.Include(b => b.Author)
+                .Where(b => b.Genre.Equals(genre, StringComparison.OrdinalIgnoreCase))
+                .Select(AsBookDto);
+        }
         protected override void Dispose(bool disposing)
         {
             if (disposing)
