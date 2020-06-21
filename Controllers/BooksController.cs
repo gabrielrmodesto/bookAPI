@@ -64,6 +64,16 @@ namespace BooksAPI.Controllers
                 .Where(b => b.Genre.Equals(genre, StringComparison.OrdinalIgnoreCase))
                 .Select(AsBookDto);
         }
+
+        [HttpGet]
+        [Route("~/api/authors/{authorId:int}/books")]
+        public IQueryable<BookDto> listBooksByAuthor(int authorId)
+        {
+            return db.Books.Include(b => b.Author)
+                .Where(b => b.AuthorId == authorId)
+                .Select(AsBookDto);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
