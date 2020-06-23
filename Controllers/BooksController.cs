@@ -74,6 +74,16 @@ namespace BooksAPI.Controllers
                 .Select(AsBookDto);
         }
 
+        [HttpGet]
+        [Route("date/{pubdate:datetime:regex(\\d{4}-\\d{2}-\\d{2})}")]
+        [Route("date/{*pubdate:datetime:regex(\\d{4}/\\d{2}/\\d{2})}")]
+        public IQueryable<BookDto> listBooksByDate(DateTime pubdate)
+        {
+            return db.Books.Include(b => b.Author)
+                .Where(b => DbFunctions.TruncateTime(b.PublishDate) == DbFunctions.TruncateTime(pubdate))
+                .Select(AsBookDto);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
